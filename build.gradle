@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.com.euuen'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'com.google.guava', name: 'guava', version: '33.3.0-jre'
+    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+}
