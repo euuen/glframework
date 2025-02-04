@@ -12,7 +12,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SceneManager extends Manager {
     ArrayList<Model> models = new ArrayList<>();
-    CopyOnWriteArrayList<Runnable> tasks = new CopyOnWriteArrayList<>();
     GLEngineSettings settings;
     GLEngine glEngine;
     public SceneManager(GLEngineSettings settings, GLEngine glEngine){
@@ -27,22 +26,12 @@ public class SceneManager extends Manager {
     @Override
     public void update() {
         super.update();
-        for (Runnable task : tasks){
-            task.run();
-        }
-        tasks.clear();
-
         Camera camera = glEngine.cameraManager.camera;
         glEngine.windowManager.getWindow().clear();
         for (Model model : models){
             model.render(camera);
         }
         glEngine.windowManager.getWindow().display();
-    }
-
-    // 为多线程环境而准备
-    public void execute(Runnable task){
-        tasks.add(task);
     }
 }
 

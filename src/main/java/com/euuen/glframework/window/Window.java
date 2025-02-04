@@ -47,10 +47,6 @@ public class Window {
         glfwDestroyWindow(handle);
     }
 
-    public void clean(){
-        glfwTerminate();
-    }
-
     public boolean shouldClose(){
         return glfwWindowShouldClose(handle);
     }

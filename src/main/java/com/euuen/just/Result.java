@@ -1,27 +1,25 @@
 package com.euuen.just;
 
-enum ResultType{
-    Ok, Err
-}
-
 public class Result<T, E>{
-    ResultType resultType;
-    T Ok;
-    E Err;
+    public static int OK = 0;
+    public static int ERR = 1;
+    public int resultType;
+    public T Ok;
+    public E Err;
     public Result<T, E> okOf(T Ok){
-        resultType = ResultType.Ok;
+        resultType = OK;
         this.Ok = Ok;
         return this;
     }
     
     public Result<T, E> errOf(E Err){
-        resultType = ResultType.Err;
+        resultType = ERR;
         this.Err = Err;
         return this;
     }
     
     public T upwrap(){
-        if (resultType.equals(ResultType.Err)){
+        if (resultType == ERR){
             System.err.println("Java panicked!" + "\n" + "Error{" + Err + "}");
             System.exit(-1);
         }
@@ -29,7 +27,7 @@ public class Result<T, E>{
     }
 
     public T expect(String info){
-        if (resultType.equals(ResultType.Err)){
+        if (resultType == ERR){
             System.err.println("Java panicked!" + "\n" + "Error{" + Err + "}" + "\n" + "Info{" + info + "}");
             System.exit(-1);
         }

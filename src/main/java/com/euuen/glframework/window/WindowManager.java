@@ -29,7 +29,6 @@ public class WindowManager extends Manager {
     public void cleanup() {
         super.cleanup();
         window.close();
-        window.clean();
     }
 }
 

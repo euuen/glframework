@@ -11,5 +11,8 @@ repositories {
 
 dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: '33.3.0-jre'
+    implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
     implementation fileTree(dir: 'libs', includes: ['*.jar'])
+    implementation fileTree(dir : 'jme3-libs', includes: ['*.jar'])
 }

@@ -51,14 +51,17 @@ public class InputManager extends Manager implements GLFWKeyCallbackI {
     }
 
     public void addMapping(Event event, String mapping){
-        eventMap.put(event, mapping);
+        execute(() -> eventMap.put(event, mapping));
+
     }
 
     public void addListener(Listener listener, String ... mappings){
-        for (String mapping : mappings){
-            if (!listenerMap.containsKey(mapping))  listenerMap.put(mapping, new ArrayList<>());
-            listenerMap.get(mapping).add(listener);
-        }
+        execute(() -> {
+            for (String mapping : mappings){
+                if (!listenerMap.containsKey(mapping))  listenerMap.put(mapping, new ArrayList<>());
+                listenerMap.get(mapping).add(listener);
+            }
+        });
     }
 }
 

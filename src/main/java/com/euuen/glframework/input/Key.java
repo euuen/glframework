@@ -7,7 +7,7 @@ public class Key {
     public Key(int key){
         this.key = key;
     }
-    public static boolean isPressed(long handle, int key){
+    public static boolean isKeyPressed(long handle, int key){
         return glfwGetKey(handle, key) == GLFW_PRESS;
     }
 }

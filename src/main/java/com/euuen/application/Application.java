@@ -2,12 +2,14 @@ package com.euuen.application;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class Application {
     private ArrayList<Manager> managers;
     public Clock clock;
     public boolean isRunning = false;
     public boolean isInitialized = false;
+    public CopyOnWriteArrayList<Runnable> tasks = new CopyOnWriteArrayList<>();
     public Runnable afterRun;
     public Application(){
         managers = new ArrayList<>();
@@ -71,8 +73,8 @@ public abstract class Application {
     }
 
     public void stop(){
-        clean();
         cleanupManagers();
+        clean();
         isRunning = false;
     }
 
@@ -89,7 +91,10 @@ public abstract class Application {
     }
 
     public void update(){
-
+        for (Runnable task : tasks){
+            task.run();
+        }
+        tasks.clear();
     }
 
     private void updateManagers(){
@@ -108,6 +113,10 @@ public abstract class Application {
         for (Manager manager: managers){
             manager.cleanup();
         }
+    }
+
+    public void execute(Runnable task){
+        tasks.add(task);
     }
 }
 

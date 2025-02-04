@@ -2,15 +2,12 @@ package com.euuen.glframework.model.material;
 
 import com.euuen.glframework.camera.Camera;
 import com.euuen.glframework.model.Model;
+import com.euuen.just.Result;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.lwjgl.opengl.GL43.*;
 import com.euuen.jutils.ResourceLoader;
@@ -24,28 +21,43 @@ public class Pipeline {
     public Model model;
     public Camera camera;
 
-    public Pipeline(PipelineSettings settings){
-        this.settings = settings;
-        program = glCreateProgram();
+    public static Result<Pipeline, String> genPipeline(PipelineSettings settings){
+        Pipeline pipeline = new Pipeline();
+        pipeline.settings = settings;
+        pipeline.program = glCreateProgram();
         if (settings.vertex_shader != null){
-            vertexShader = glCreateShader(GL_VERTEX_SHADER);
-            String source = ResourceLoader.readAll(this, settings.vertex_shader).expect("[com.euuen.glframework.model.material.Pipeline]:please check your Vertex Shader's PATH");
-            glShaderSource(vertexShader, source);
-            glCompileShader(vertexShader);
-            glAttachShader(program, vertexShader);
+            pipeline.vertexShader = glCreateShader(GL_VERTEX_SHADER);
+            Result<String, String> result = ResourceLoader.readAll(pipeline, settings.vertex_shader);
+            String source;
+            if (result.resultType == Result.OK){
+                source = result.Ok;
+            }else {
+                return new Result<Pipeline, String>().errOf("Pipeline: error vertex shader path");
+            }
+            glShaderSource(pipeline.vertexShader, source);
+            glCompileShader(pipeline.vertexShader);
+            glAttachShader(pipeline.program, pipeline.vertexShader);
         }
         if (settings.fragment_shader != null){
-            fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-            String source = ResourceLoader.readAll(this, settings.fragment_shader).expect("[com.euuen.glframework.model.material.Pipeline]:please check Fragment Shader's PATH");
-            glShaderSource(fragmentShader, source);
-            glCompileShader(fragmentShader);
-            glAttachShader(program, fragmentShader);
+            pipeline.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+            Result<String, String> result = ResourceLoader.readAll(pipeline, settings.fragment_shader);
+            String source;
+            if (result.resultType == Result.OK){
+                source = result.Ok;
+            }else {
+                return new Result<Pipeline, String>().errOf("Pipeline: error fragment shader path");
+            }
+            glShaderSource(pipeline.fragmentShader, source);
+            glCompileShader(pipeline.fragmentShader);
+            glAttachShader(pipeline.program, pipeline.fragmentShader);
         }
-        glLinkProgram(program);
+        glLinkProgram(pipeline.program);
+        return new Result<Pipeline, String>().okOf(pipeline);
 //        outShaderInfo("two", vertexShader);
 //        outShaderInfo("three", fragmentShader);
 //        outProgramInfo("four", program);
     }
+
 
     public void setParameter1f(String parameter, float value){
         activate();
@@ -63,6 +75,17 @@ public class Pipeline {
         }
         inactivate();
     }
+
+    public void setParameterVec3f(String parameter, Vector3f value){
+        activate();
+        int location = glGetUniformLocation(program, parameter);
+        try (MemoryStack stack = MemoryStack.stackPush()){
+            FloatBuffer fb = value.get(stack.mallocFloat(3));
+            glUniform3fv(location, fb);
+        }
+        inactivate();
+    }
+
 
     public void activate(){
         glUseProgram(program);
