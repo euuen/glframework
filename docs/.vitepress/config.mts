@@ -7,22 +7,31 @@ export default defineConfig({
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+        { text: 'GLFramework', link: '/glframework/intro' },
+        { text: 'AMC', link: '/amc/intro' }
     ],
 
-    sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
+    sidebar: {
+        "glframework": [
+
+        ],
+        "amc": [
+          	{
+				text: "简介",
+				link: "/amc/intro"
+          	},
+			{
+				text: "API",
+				collapsed: false,
+				items: [
+					{ text: "Application", link: "/amc/Application" }
+				]
+			}
         ]
-      }
-    ],
+    },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+        { icon: 'github', link: 'https://github.com/euuen' }
     ]
   }
 })
