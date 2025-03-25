@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: "/glframework",
   title: "GLFramework",
   description: "The document of glframework",
   themeConfig: {
