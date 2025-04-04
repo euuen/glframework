@@ -25,7 +25,6 @@ public class MyApp extends Application{
     public void update(){
         if (i == 3){
             stop();
-            return;
         }
         System.out.println("updating...");
         i++;
@@ -45,7 +44,7 @@ public class MyApp extends Application{
 
 输出结果为：
 
-```
+```cpp
 hello amc | initilizing...
 updating...
 updating...
@@ -55,23 +54,220 @@ bye amc | cleanup...
 
 这个类MyApp继承了Application类，然后覆盖了它的initialize方法。我们实例化MyApp后，需要用start方法启动Application。只会AMC才会执行你的initialize方法。
 
-初始化你的Application后，就会开始循环执行update方法。可以看到，在update中有一个判断，当i==3时执行stop函数然后返回，这意味着这个update方法只会被执行三次，也就是说只会输出三次updating。然后执行stop的时候会执行cleanup方法。
-
-注意，**要执行这个return方法**，因为使用了stop函数后，update方法不会立即停止，为了避免后面的代码可能会调用已经被清理掉的资源应该及时return。虽然有些时候你可以把stop方法放到最后执行以避免return方法，但是这么做还是个好习惯。
-
-::: details 不执行return的输出
-```
-hello amc | initilizing...
-updating...
-updating...
-updating...
-bye amc | cleanup...
-updateing...
-```
-
-注意看，这里出现了不应该出现的updating输出。
-:::
+初始化你的Application后，就会开始循环执行update方法。可以看到，在update中有一个判断，当i==3时执行stop函数然后返回，这意味着这个update方法只会被执行三次，也就是说只会输出三次updating。然后执行stop的时候会执行cleanup方法。执行完cleanup后，然后AMC会调用exit函数退出。所以注意，stop后面的代码是不能被执行的
 
 ## 复杂化我们的程序
 
-现在，假设
+现在，假设我们有两个模块，一个叫A，一个叫B，他们二者分别需要各自输出Sending info和Recving info。如果我们把A和B的逻辑混合在一个update方法中，这会使得update变得非常巨大，如果以后要添加新的模块的话，可能还会让update变得更加臃肿。
+
+解决方法是把它们分割到两个Manager中，在Manager中分别实现他们二者的逻辑。
+
+> 你会发现Manager的API与Application惊人的相似
+
+```java
+class MgrA extends Manager{
+    @Override
+    public void initialize() {
+        super.initialize();
+        System.out.println("initialize A");
+    }
+
+    @Override
+    public void update(){
+        System.out.println("sending info");
+    }
+
+    @Override
+    public void cleanup(){
+        System.out.println("cleanup A")
+    }
+}
+
+class MgrB extends Manager{
+    @Override
+    public void initialize() {
+        super.initialize();
+        System.out.println("initialize B");
+    }
+
+    @Override
+    public void update(){
+        System.out.println("recving info");
+    }
+
+    @Override
+    public void cleanup(){
+        System.out.println("cleanup B")
+    }
+}
+```
+
+在定义完了两个组件后，我们应该把它们添加到你的Application中
+
+```java
+public class MyApp extends Application{
+    int i = 0;
+
+    @Override
+    public void initialize(){
+        System.out.println("hello amc | initilizing...");
+        addManager(new MgrA());
+        addManager(new MgrB());
+    }
+
+    @Override
+    public void update(){
+        System.out.println("updating...");
+        i++;
+        if (i == 1){
+            stop();
+        }
+    }
+
+    @Override
+    public void cleanup(){
+        System.out.println("bye amc | cleanup...")
+    }
+
+    public static void main(String[] args){
+        MyApp app = new MyApp();
+        app.start();
+    }
+}
+```
+
+输出的结果为：
+
+```cpp
+hello amc | initilizing...
+initialize A        // [!code ++]
+intiialize B        // [!code ++]
+updating...
+sending info        // [!code ++]
+recving info        // [!code ++]
+cleanup A           // [!code ++]
+cleanup B           // [!code ++]
+bye amc | cleanup...
+```
+
+> 我想聪明的你一定能看懂AMC的运行顺序吧。
+
+这里有几个地方要强调
+
+1. addManager时，会触发manager的initialize方法
+2. cleanup的时候，会先cleanup manager，在清除Application
+3. manager的运行顺序取决于他们的添加顺序
+
+## 使用控制器，结合Application与Manager
+
+现在，假设这么一个情况，你有一个生物需要控制，比如控制位移，控制它的饱食度。那应该怎么做呢？我们需要时刻更新位移与饱食度。那么最好的方法是使用AMC的Controlee与Control
+
+Controlee是被控制的对象，Control则是控制器
+
+> 说实话有一段时间我在想怎么用英语简洁的表达被控制的对象，后来看到Employee我就想出来了。Controlee算是我自己捏造的一个单词吧。~~或许外国人也可能用过~~
+
+```java
+public class Creature extends Controlee {
+    public Vector3f location;
+    public float hungry = 20f;
+    public float health = 20f;
+    
+    public Creature(Vector 3f location){
+        setHost(Identifier.of("CreatureManager"));
+        this.location = location;
+        addControl(new HungryControl());
+        addControl(new HealthControl());
+        addControl(new PhysicsControl());
+    }
+}
+
+class HungryControl extends Control{
+    @Override
+    public void update(){
+        Creature crt = (Creature) getControlee();
+        ctr.hungry -= 0.1f;
+        System.out.println("updating hungry...");
+    }
+}
+
+class HealthControl extends Control{
+    @Override
+    public void update(){
+        Creature crt = (Creature) getControlee();
+        if (crt.hungry < 0.0f){
+            crt.health -= 1.5f;
+        }
+        System.out.println("updating health...");
+        if (crt.health <= 0.0f){
+            // stop是静态方法，因为AMC的Application遵循单例模式
+            Application.stop();
+        }
+    }
+}
+
+class PhysicsControl extends Control {
+    public PhysicsControl(){
+        setHost(Indentifier.of("PhysicsManager"));
+    }
+
+    @Override
+    public void update(){
+        Creature crt = (Creature) getControlee();
+
+        // 这里是故意加的，真实的物理控制器应该没有这行。如果要实现相同的功能，可以通过控制器设置速度。
+        crt.location.move(new Vector3f(0.1f, 0f, 0f));
+
+        // 碰撞检测
+        System.out.println("physics test...");
+    }
+}
+```
+
+这段代码可能有点长，但是不难看懂
+
+这里有三个控制器控制生物。分别是饥饿值，健康值，物理控制器（负责位移和与其他物体的碰撞）
+
+注意这里的新的API，setHost，顾名思义就是设置东道主。因为Controlee和Control是不能自己主动初始化，更新的，我们应该让Manager完成这个工作，Host即指Manager。
+
+如果控制器不设置Host的话，默认顺从Controlee的Host。否则则顺从自己设计的。这么做的原因是不同的Control需要顺从不同的Manager，你要保证Control与Manager的生命周期一致，不然PhysicsManager挂了，但是PhysicsControl还活着，或者反过来，这都是不合理的。
+
+这里的Indentifier是Manager的id，一般在你的Manager的构造函数中。（如果你不设置Manager的id，addManager后会自动给你随机设置。）
+
+下面这个把Creature添加到程序的代码可以解释这点。
+
+```java
+class CreatureManager extends Manager {
+    public CreatureManager(){
+        this.id = new Identifier("CreatureManager");
+    }
+    // 省略部分逻辑代码
+}
+
+class PhysicsManager extends Manger{
+    public PhysicsManager(){
+        this.id = new Identifier("PhysicsManager");
+    }
+    // 省略部分逻辑代码
+}
+
+public class MyApp extends Application{
+    CreatureManger crtMgr;
+    @Override
+    public void initialize(){
+        crtMgr = new CreatureManger()
+        addManager(crtMgr);
+        addManager(new PhysicsManger());
+
+        crtMgr.addCreature(new Creature());
+    }
+
+    public static void main(String[] args){
+        MyApp app = new MyApp();
+        app.start();
+    }
+}
+```
+
+预计的结果是，饱食度会掉到0一下，然后开始掉健康值，小于0后退出程序。
+
+> 额，这个Control的概念真的很复杂。我想了很久都没有一个好的方案
