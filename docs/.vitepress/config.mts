@@ -18,16 +18,23 @@ export default defineConfig({
         ],
         "amc": [
           	{
-				text: "简介",
-				link: "/amc/intro"
+              text: "简介",
+              link: "/amc/intro"
           	},
-			{
-				text: "API",
-				collapsed: false,
-				items: [
-					{ text: "Application", link: "/amc/Application" }
-				]
-			}
+            {
+              text: "教程",
+              collapsed: false,
+              items :[
+                { text: "第一章：Hello AMC", link: '/amc/tutor/helloAMC' }
+              ]
+            },
+            {
+              text: "API",
+              collapsed: false,
+              items: [
+                { text: "Application", link: "/amc/api/Application" }
+              ]
+            }
         ]
     },
 

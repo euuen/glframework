@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public abstract class Application {
     private ArrayList<Manager> managers;
     public Clock clock;
-    public boolean isRunning = false;
+    public boolean isRunning = true;
     public boolean isInitialized = false;
     public CopyOnWriteArrayList<Runnable> tasks = new CopyOnWriteArrayList<>();
     public Runnable afterRun;
@@ -49,7 +49,6 @@ public abstract class Application {
         afterRun.run();
         isInitialized = true;
         clock.start();
-        isRunning = true;
         while (isRunning){
             update();
             updateManagers();

@@ -4,8 +4,6 @@ import com.euuen.application.Controllable;
 import com.euuen.glframework.GLEngineSettings;
 import com.euuen.glframework.math.Vector3f;
 import com.euuen.glframework.math.Vector4f;
-import com.jme3.math.Matrix3f;
-import com.jme3.math.Quaternion;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
