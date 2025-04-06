@@ -152,13 +152,15 @@ bye amc | cleanup...
 
 > 我想聪明的你一定能看懂AMC的运行顺序吧。
 
+::: warning 注意
 这里有几个地方要强调
 
 1. addManager时，会触发manager的initialize方法
 2. cleanup的时候，会先cleanup manager，在清除Application
 3. manager的运行顺序取决于他们的添加顺序
+:::
 
-## 使用控制器，结合Application与Manager
+## 结合Application与Manager与Control才叫AMC
 
 现在，假设这么一个情况，你有一个生物需要控制，比如控制位移，控制它的饱食度。那应该怎么做呢？我们需要时刻更新位移与饱食度。那么最好的方法是使用AMC的Controlee与Control
 
@@ -171,13 +173,16 @@ public class Creature extends Controlee {
     public Vector3f location;
     public float hungry = 20f;
     public float health = 20f;
+    public HungryControl hungryCrtl = new HungryControl();
+    public HealthControl healthCrtl = new HealthControl();
+    public PhysicsControl phyCrtl = new PhysicsControl();
     
     public Creature(Vector 3f location){
-        setHost(Identifier.of("CreatureManager"));
         this.location = location;
-        addControl(new HungryControl());
-        addControl(new HealthControl());
-        addControl(new PhysicsControl());
+        addControl(hungryCrtl);
+        addControl(healthCrtl);
+        addControl(phyCrtl);
+        ((MyApp) Application.instace).phyMgr.addPhysicsControl(crt.phyCtrl);
     }
 }
 
@@ -206,19 +211,22 @@ class HealthControl extends Control{
 }
 
 class PhysicsControl extends Control {
-    public PhysicsControl(){
-        setHost(Indentifier.of("PhysicsManager"));
-    }
-
+    // 一些坐标和速度相关的参数
     @Override
     public void update(){
         Creature crt = (Creature) getControlee();
 
+        // 把物理引擎中的数据同步到OpenGL空间
+
+        System.out.println("physics test...");
+    }
+
+    @Override
+    public void refresh(){
         // 这里是故意加的，真实的物理控制器应该没有这行。如果要实现相同的功能，可以通过控制器设置速度。
         crt.location.move(new Vector3f(0.1f, 0f, 0f));
 
         // 碰撞检测
-        System.out.println("physics test...");
     }
 }
 ```
@@ -227,9 +235,9 @@ class PhysicsControl extends Control {
 
 这里有三个控制器控制生物。分别是饥饿值，健康值，物理控制器（负责位移和与其他物体的碰撞）
 
-注意这里的新的API，setHost，顾名思义就是设置东道主。因为Controlee和Control是不能自己主动初始化，更新的，我们应该让Manager完成这个工作，Host即指Manager。
+注意看，这里覆盖了两个方法，一个是update，一个是refresh。它们两个的作用都是刷新Control，既然功能一样为什么还要做成两个方法？这里解释一下，update是交给Controlee更新的，而Controlee是交给Manager更新的，而Manager是交给Application更新的，那refresh呢？refresh是交给Manager更新的。
 
-如果控制器不设置Host的话，默认顺从Controlee的Host。否则则顺从自己设计的。这么做的原因是不同的Control需要顺从不同的Manager，你要保证Control与Manager的生命周期一致，不然PhysicsManager挂了，但是PhysicsControl还活着，或者反过来，这都是不合理的。
+这里解释一下为什么要这样设计的原因。因为考虑到物理引擎和图像引擎往往要更新的内容不一样，干脆我就设计两个函数算了。物理引擎要更新的是物体的坐标和速度，主线程则要同步。
 
 这里的Indentifier是Manager的id，一般在你的Manager的构造函数中。（如果你不设置Manager的id，addManager后会自动给你随机设置。）
 
@@ -238,28 +246,38 @@ class PhysicsControl extends Control {
 ```java
 class CreatureManager extends Manager {
     public CreatureManager(){
-        this.id = new Identifier("CreatureManager");
+        super.id = new Identifier("CreatureManager");
+    }
+
+    public addCreature(Creature crt){
+        creatures.add(crt);
+        addControlee(crt);
     }
     // 省略部分逻辑代码
 }
 
 class PhysicsManager extends Manger{
     public PhysicsManager(){
-        this.id = new Identifier("PhysicsManager");
+        super.id = new Identifier("PhysicsManager");
+    }
+
+    public addPhysicsControl(PhysicsControl phyCrtl){
+        phyCtrls.add(phyCtrl);
+        addControl(phyCtrl);
     }
     // 省略部分逻辑代码
 }
 
 public class MyApp extends Application{
-    CreatureManger crtMgr;
+    CreatureManger crtMgr crtMgr = new CreatureManger();
+    PhysicsManager phyMgr = new PhysicsManger();
     @Override
     public void initialize(){
-        crtMgr = new CreatureManger()
         addManager(crtMgr);
-        addManager(new PhysicsManger());
+        addManager(phyMgr);
 
         crtMgr.addCreature(new Creature());
-    }
+        }
 
     public static void main(String[] args){
         MyApp app = new MyApp();
@@ -268,6 +286,8 @@ public class MyApp extends Application{
 }
 ```
 
-预计的结果是，饱食度会掉到0一下，然后开始掉健康值，小于0后退出程序。
+::: warning 警告
+只有在`addXXX()`的时候才会初始化`XXX`。
+:::
 
-> 额，这个Control的概念真的很复杂。我想了很久都没有一个好的方案
+预计的结果是，饱食度会掉到0一下，然后开始掉健康值，小于0后退出程序。

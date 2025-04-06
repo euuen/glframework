@@ -2,9 +2,11 @@
 
 ## public static void getInstance()
 
-### 作用
+<div class="card">
+    <h3>作用</h3>
+    <p>获取Application实例</p>
+</div>
 
-获取Application实例
 
 ### 例子
 
