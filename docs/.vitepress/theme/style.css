@@ -152,10 +152,22 @@
   --card-box-shadow-2-blur: 15px;
 }
 
-.card {
+.darkcard {
   background-color: #18181B;
   box-shadow: 0px var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
   padding: 5px 16px 16px 16px;
   border-radius: 15px;
+  margin: 10px;
 }
 
+.lightcard {
+  background-color: #cacae1;
+  box-shadow: 0px var(--card-box-shadow-1-y) var(--card-box-shadow-1-blur) var(--card-box-shadow-1), 0px var(--card-box-shadow-2-y) var(--card-box-shadow-2-blur) var(--card-box-shadow-2), 0 0 0 1px var(--card-border-color);
+  padding: 5px 16px 16px 16px;
+  border-radius: 15px;
+  margin: 10px;
+}
+
+.func {
+  color: #B392F0;
+}

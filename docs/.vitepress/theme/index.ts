@@ -4,6 +4,7 @@ import { useData, useRoute, type Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import './style.css'
 import giscusTalk from 'vitepress-plugin-comment-with-giscus'
+import Card from './card.vue'
 
 export default {
   extends: DefaultTheme,
@@ -14,6 +15,7 @@ export default {
   },
   enhanceApp({ app, router, siteData }) {
     // ...
+    app.component("card", Card)
   },
     setup(){
         const { frontmatter } = useData();

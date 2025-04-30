@@ -30,9 +30,12 @@ export default defineConfig({
             },
             {
               text: "API",
-              collapsed: false,
+              collapsed: true,
               items: [
-                { text: "Application", link: "/amc/api/Application" }
+                { text: "Application", link: "/amc/api/Application" },
+                { text: "Manager", link: "/amc/api/Manager"},
+                { text: 'Worker', link: '/amc/api/Worker'},
+                { text: 'System', link: '/amc/api/System'}
               ]
             }
         ]
