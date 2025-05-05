@@ -1,4 +1,4 @@
 package com.euuen.rapplication;
 
-public class Control {
+public class Worker {
 }

@@ -3,8 +3,11 @@
 ## <span>`getInstance`</span>
 
 <card>
-    <h3>作用</h3>
-    <p>获取Application实例</p>
+    
+### 作用
+
+获取Application实例
+
 </card>
 
 <card>
@@ -16,6 +19,10 @@ Application app = Application.getInstance();
 ```
 
 </card>
+
+::: tip 我的小小建议
+在自己的Application中覆盖这个方法吧。因为此方法返回的类型只是基类，如果你要用自己的Application中的一些方法，还要显式转换一下类型是吧，最好自己实现一个，这样就不用显式地转换类型了。
+:::
 
 ## <span>`initilize`</span>
 
@@ -61,6 +68,10 @@ Application其实隐式地在内部，在主线程创建了一个baseSystem，�
 
 ## <span>`stop`</span>
 
+## <span>`pause`</span>
+
+## <span>`resume`</span>
+
 ## <span>`regManager`</span>
 
 ::: tip
@@ -89,17 +100,31 @@ app.regManager(new MyMgr());
 
 </card>
 
+## <span>`initManager`</span>
+
+## <span>`addManager`</span>
+
+## <span>`rmManager`</span>
+
+<card>
+
+### 作用
+
+删除Manager
+
+</card>
+
 ## <span>`getManager`</span>
 
 ::: tip
-此方法会在每一个System中查询是否有指定的Manager
+此方法会只会在baseSystem中查询是否有指定的Manager，如果要想全局查找，请使用`getManagerGlobally`方法
 :::
 
 <card>
 
 ### 作用
 
-通过id获取指定的Manager。
+通过id获取指定的Manager。不过id一般是由class设置的，所以直接输入class就好了。
 
 </card>
 
@@ -112,6 +137,7 @@ app.regManager(new MyMgr());
 |参数|类型|
 |-|-|
 |id|String|
+|globallyFind|Boolean（选填）|
 
 |返回值|类型|
 |-|-|
@@ -126,14 +152,19 @@ app.regManager(new MyMgr());
 ### 示例
 
 ```java
-String id = "MyMgr";
-Manager mgr = Application.getManager();
+Manager mgr = Application.getManager(MyMgr.class);
 ```
 
 </card>
 
-## <span>`rmManager`</span>
+## <span>`getManagerGlobally`</span>
 
 ## <span>`regSystem`</span>
 
+## <span>`initSystem`</span>
+
+## <span>`addSystem`</span>
+
 ## <span>`rmSystem`</span>
+
+## <span>`getSystem`</span>

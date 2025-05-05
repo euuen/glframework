@@ -2,11 +2,10 @@ package com.euuen.rapplication;
 
 import java.util.HashMap;
 
-public abstract class Application {
-    public HashMap<String, Manager> managers = new HashMap<>();
+public abstract class Application extends System{
     public static Application instance;
-    public boolean isInitialized = false;
-    public boolean isRunning = false;
+    public HashMap<String, System> systems = new HashMap<>();
+    public HashMap<String, System> systemsToInit = new HashMap<>();
 
     public static Application getInstance() {
         return instance;
@@ -16,53 +15,49 @@ public abstract class Application {
         instance = this;
     }
 
-    public void initialize(){
-
-    }
-
-    public void update(){
-
-    }
-
-    public void cleanup(){
-
-    }
-
     public void start(){
-        initialize();
-        isInitialized = true;
-        loop();
-    }
-
-    public void loop(){
-        isRunning = true;
-        while (isRunning){
-            update();
-            for (Manager mgr : managers.values()){
-                mgr.update();
-                if (!isRunning) break;
-            }
-        }
-    }
-
-    public void pause(){
-        isRunning = false;
+        create();
     }
 
     public void stop(){
-        for (Manager mgr : managers.values()){
-            mgr.cleanup();
+        destroy();
+        for (System system : systems.values()){
+            system.destroy();
         }
-        cleanup();
-        System.exit(0);
+
+        systems = null;
+        systemsToInit = null;
+        java.lang.System.exit(0);
     }
 
-    public void addManager(Manager manager){
-        if (manager.id == null) {
-            manager.id = manager.getClass().toString();
+    public void regSystem(System system){
+        if (system.id == null) system.id = system.getClass().toString();
+        systemsToInit.put(system.id, system);
+    }
+
+    public void initSystem(){
+        for (System system : systemsToInit.values()){
+            system.create();
+            systems.put(system.id, system);
         }
-        managers.put(manager.id, manager);
-        manager.initialize();
+        systemsToInit.clear();
+    }
+
+    public void addSystem(System system){
+        if (system.id == null) system.id = system.getClass().toString();
+        Thread thread = new Thread(system::create);
+        thread.start();
+        systems.put(system.id, system);
+    }
+
+    public System getSystem(String id){
+        System res = systems.get(id);
+        if (res != null) return res;
+        return systemsToInit.get(id);
+    }
+
+    public void rmSystem(String id){
+        systems.remove(id);
     }
 }
 
